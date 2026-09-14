@@ -13,3 +13,7 @@ export async function getUserByName(name: string) {
 
   return result;
 }
+
+export async function deleteAllUsers(): Promise<void> {
+  await db.delete(users);
+}

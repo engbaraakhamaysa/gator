@@ -1,11 +1,24 @@
 import { setUser } from "./config.js";
-import { createUser, getUserByName } from "./db/queries/users.js";
+import {
+  createUser,
+  getUserByName,
+  deleteAllUsers,
+} from "./db/queries/users.js";
 
 export type CommandHandler = (
   cmdName: string,
   ...args: string[]
 ) => Promise<void>;
 export type CommandsRegistry = Record<string, CommandHandler>;
+
+export async function handlerReset(
+  cmdName: string,
+  ...args: string[]
+): Promise<void> {
+  await deleteAllUsers();
+
+  console.log("Database reset successfully");
+}
 
 // Handles the login command by setting the current username
 export async function handlerLogin(

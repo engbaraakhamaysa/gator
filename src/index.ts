@@ -1,4 +1,5 @@
 import {
+  handlerReset,
   handlerLogin,
   handlerRegister,
   registerCommand,
@@ -13,6 +14,7 @@ async function main(): Promise<void> {
   // Registers the login command and its handler
   registerCommand(registry, "login", handlerLogin);
   registerCommand(registry, "register", handlerRegister);
+  registerCommand(registry, "reset", handlerReset);
 
   // Gets the command-line arguments without the Node.js and npm arguments
   const args = process.argv.slice(2);
