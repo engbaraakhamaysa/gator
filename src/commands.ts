@@ -20,24 +20,40 @@ export type CommandHandler = (
   cmdName: string,
   ...args: string[]
 ) => Promise<void>;
+
 export type CommandsRegistry = Record<string, CommandHandler>;
+
+type UserCommandHandler = (
+  cmdName: string,
+  user: User,
+  ...args: string[]
+) => Promise<void>;
+
+export function middlewareLoggedIn(
+  handler: UserCommandHandler,
+): CommandHandler {
+  return async (cmdName: string, ...args: string[]): Promise<void> => {
+    const config = readConfig();
+
+    if (!config.currentUserName) {
+      throw new Error("No user is currently logged in");
+    }
+
+    const user = await getUserByName(config.currentUserName);
+
+    if (!user) {
+      throw new Error(`User ${config.currentUserName} does not exist`);
+    }
+
+    await handler(cmdName, user, ...args);
+  };
+}
 
 export async function handlerFollowing(
   cmdName: string,
+  user: User,
   ...args: string[]
 ): Promise<void> {
-  const config = readConfig();
-
-  if (!config.currentUserName) {
-    throw new Error("No user is currently logged in");
-  }
-
-  const user = await getUserByName(config.currentUserName);
-
-  if (!user) {
-    throw new Error(`User ${config.currentUserName} does not exist`);
-  }
-
   const feedFollows = await getFeedFollowsForUser(user.id);
 
   for (const feedFollow of feedFollows) {
@@ -47,6 +63,7 @@ export async function handlerFollowing(
 
 export async function handlerFollow(
   cmdName: string,
+  user: User,
   ...args: string[]
 ): Promise<void> {
   if (args.length < 1) {
@@ -54,18 +71,6 @@ export async function handlerFollow(
   }
 
   const feedUrl = args[0];
-
-  const config = readConfig();
-
-  if (!config.currentUserName) {
-    throw new Error("No user is currently logged in");
-  }
-
-  const user = await getUserByName(config.currentUserName);
-
-  if (!user) {
-    throw new Error(`User ${config.currentUserName} does not exist`);
-  }
 
   const feed = await getFeedByUrl(feedUrl);
 
@@ -98,6 +103,7 @@ export async function handlerFeeds(
 
 export async function handlerAddFeed(
   cmdName: string,
+  user: User,
   ...args: string[]
 ): Promise<void> {
   if (args.length < 2) {
@@ -106,18 +112,6 @@ export async function handlerAddFeed(
 
   const feedName = args[0];
   const feedUrl = args[1];
-
-  const config = readConfig();
-
-  if (!config.currentUserName) {
-    throw new Error("No user is currently logged in");
-  }
-
-  const user = await getUserByName(config.currentUserName);
-
-  if (!user) {
-    throw new Error(`User ${config.currentUserName} does not exist`);
-  }
 
   const feed = await createFeed(feedName, feedUrl, user.id);
 
