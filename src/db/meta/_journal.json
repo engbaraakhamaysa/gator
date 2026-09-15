@@ -15,6 +15,13 @@
       "when": 1789446251143,
       "tag": "0001_wise_sister_grimm",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789455967344,
+      "tag": "0002_daily_thanos",
+      "breakpoints": true
     }
   ]
 }
