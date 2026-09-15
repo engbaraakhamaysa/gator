@@ -1,4 +1,6 @@
 import {
+  handlerFollowing,
+  handlerFollow,
   handlerFeeds,
   handlerAddFeed,
   handlerAgg,
@@ -23,6 +25,8 @@ async function main(): Promise<void> {
   registerCommand(registry, "agg", handlerAgg);
   registerCommand(registry, "addfeed", handlerAddFeed);
   registerCommand(registry, "feeds", handlerFeeds);
+  registerCommand(registry, "follow", handlerFollow);
+  registerCommand(registry, "following", handlerFollowing);
 
   // Gets the command-line arguments without the Node.js and npm arguments
   const args = process.argv.slice(2);
