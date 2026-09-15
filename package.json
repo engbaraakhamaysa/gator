@@ -21,7 +21,12 @@
   "homepage": "https://github.com/engbaraakhamaysa/gator#readme",
   "devDependencies": {
     "@types/node": "^26.5.1",
+    "drizzle-kit": "^0.31.10",
     "tsx": "^4.23.13",
     "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.2",
+    "postgres": "^3.4.9"
   }
 }

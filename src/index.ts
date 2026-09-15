@@ -1,16 +1,22 @@
 import {
+  handlerUsers,
+  handlerReset,
   handlerLogin,
+  handlerRegister,
   registerCommand,
   runCommand,
   type CommandsRegistry,
 } from "./commands.js";
 
 // Initializes the command registry and handles CLI input
-function main(): void {
+async function main(): Promise<void> {
   const registry: CommandsRegistry = {};
 
   // Registers the login command and its handler
   registerCommand(registry, "login", handlerLogin);
+  registerCommand(registry, "register", handlerRegister);
+  registerCommand(registry, "reset", handlerReset);
+  registerCommand(registry, "users", handlerUsers);
 
   // Gets the command-line arguments without the Node.js and npm arguments
   const args = process.argv.slice(2);
@@ -27,11 +33,13 @@ function main(): void {
 
   // Runs the command and handles any errors
   try {
-    runCommand(registry, cmdName, ...cmdArgs);
+    await runCommand(registry, cmdName, ...cmdArgs);
   } catch (error) {
     console.error(error);
     process.exit(1);
   }
+
+  process.exit(0);
 }
 
 main();
