@@ -1,16 +1,73 @@
 import { setUser, readConfig } from "./config.js";
+import { fetchFeed } from "./rss.js";
 import {
   createUser,
   getUserByName,
   deleteAllUsers,
   getUsers,
 } from "./db/queries/users.js";
+import { createFeed, getFeedsWithUsers } from "./db/queries/feeds.js";
+
+import type { Feed, User } from "./schema.js";
+function printFeed(feed: Feed, user: User): void {
+  console.log(`* ${feed.name}`);
+  console.log(`  URL: ${feed.url}`);
+  console.log(`  Added by: ${user.name}`);
+}
 
 export type CommandHandler = (
   cmdName: string,
   ...args: string[]
 ) => Promise<void>;
 export type CommandsRegistry = Record<string, CommandHandler>;
+
+export async function handlerFeeds(
+  cmdName: string,
+  ...args: string[]
+): Promise<void> {
+  const feeds = await getFeedsWithUsers();
+
+  for (const feed of feeds) {
+    printFeed(feed.feed, feed.user);
+  }
+}
+
+export async function handlerAddFeed(
+  cmdName: string,
+  ...args: string[]
+): Promise<void> {
+  if (args.length < 2) {
+    throw new Error("name and url are required");
+  }
+
+  const feedName = args[0];
+  const feedUrl = args[1];
+
+  const config = readConfig();
+
+  if (!config.currentUserName) {
+    throw new Error("No user is currently logged in");
+  }
+
+  const user = await getUserByName(config.currentUserName);
+
+  if (!user) {
+    throw new Error(`User ${config.currentUserName} does not exist`);
+  }
+
+  const feed = await createFeed(feedName, feedUrl, user.id);
+
+  printFeed(feed, user);
+}
+
+export async function handlerAgg(
+  cmdName: string,
+  ...args: string[]
+): Promise<void> {
+  const feed = await fetchFeed("https://www.wagslane.dev/index.xml");
+
+  console.log(JSON.stringify(feed, null, 2));
+}
 
 export async function handlerUsers(
   cmdName: string,

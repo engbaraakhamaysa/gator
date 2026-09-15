@@ -1,4 +1,7 @@
 import {
+  handlerFeeds,
+  handlerAddFeed,
+  handlerAgg,
   handlerUsers,
   handlerReset,
   handlerLogin,
@@ -12,11 +15,14 @@ import {
 async function main(): Promise<void> {
   const registry: CommandsRegistry = {};
 
-  // Registers the login command and its handler
+  // Register all available CLI commands with their corresponding handlers
   registerCommand(registry, "login", handlerLogin);
   registerCommand(registry, "register", handlerRegister);
   registerCommand(registry, "reset", handlerReset);
   registerCommand(registry, "users", handlerUsers);
+  registerCommand(registry, "agg", handlerAgg);
+  registerCommand(registry, "addfeed", handlerAddFeed);
+  registerCommand(registry, "feeds", handlerFeeds);
 
   // Gets the command-line arguments without the Node.js and npm arguments
   const args = process.argv.slice(2);
