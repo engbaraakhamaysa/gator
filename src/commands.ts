@@ -12,6 +12,7 @@ import {
   createFeedFollow,
   getFeedByUrl,
   getFeedFollowsForUser,
+  deleteFeedFollow,
 } from "./db/queries/feeds.js";
 
 import type { Feed, User } from "./schema.js";
@@ -47,6 +48,20 @@ export function middlewareLoggedIn(
 
     await handler(cmdName, user, ...args);
   };
+}
+
+export async function handlerUnfollow(
+  cmdName: string,
+  user: User,
+  ...args: string[]
+): Promise<void> {
+  if (args.length < 1) {
+    throw new Error("url is required");
+  }
+
+  const feedUrl = args[0];
+
+  await deleteFeedFollow(user.id, feedUrl);
 }
 
 export async function handlerFollowing(
