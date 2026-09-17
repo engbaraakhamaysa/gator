@@ -7,6 +7,8 @@ import {
   getUsers,
 } from "./db/queries/users.js";
 import {
+  getNextFeedToFetch,
+  markFeedFetched,
   createFeed,
   getFeedsWithUsers,
   createFeedFollow,
@@ -138,15 +140,78 @@ export async function handlerAddFeed(
   console.log(`  Followed by: ${feedFollow.userName}`);
 }
 
+async function scrapeFeeds(): Promise<void> {
+  const feed = await getNextFeedToFetch();
+
+  if (!feed) {
+    throw new Error("No feeds available");
+  }
+
+  const rssFeed = await fetchFeed(feed.url);
+
+  await markFeedFetched(feed.id);
+
+  for (const item of rssFeed.channel.item) {
+    console.log(item.title);
+  }
+}
+
 export async function handlerAgg(
   cmdName: string,
   ...args: string[]
 ): Promise<void> {
-  const feed = await fetchFeed("https://www.wagslane.dev/index.xml");
+  if (args.length < 1) {
+    throw new Error("time_between_reqs is required");
+  }
 
-  console.log(JSON.stringify(feed, null, 2));
+  const durationStr = args[0];
+
+  const regex = /^(\d+)(ms|s|m|h)$/;
+  const match = durationStr.match(regex);
+
+  if (!match) {
+    throw new Error("Invalid duration format");
+  }
+
+  const amount = Number(match[1]);
+  const unit = match[2];
+
+  let durationMs: number;
+
+  switch (unit) {
+    case "ms":
+      durationMs = amount;
+      break;
+    case "s":
+      durationMs = amount * 1000;
+      break;
+    case "m":
+      durationMs = amount * 60 * 1000;
+      break;
+    case "h":
+      durationMs = amount * 60 * 60 * 1000;
+      break;
+    default:
+      throw new Error("Invalid duration unit");
+  }
+
+  console.log(`Collecting feeds every ${durationMs}ms`);
+
+  await scrapeFeeds();
+
+  const interval = setInterval(() => {
+    scrapeFeeds().catch((err) => {
+      console.error(err);
+    });
+  }, durationMs);
+
+  await new Promise<void>((resolve) => {
+    process.on("SIGINT", () => {
+      clearInterval(interval);
+      resolve();
+    });
+  });
 }
-
 export async function handlerUsers(
   cmdName: string,
   ...args: string[]
