@@ -17,6 +17,7 @@ import {
   deleteFeedFollow,
 } from "./db/queries/feeds.js";
 
+import { createPost, getPostsForUser } from "./db/queries/posts.js";
 import type { Feed, User } from "./schema.js";
 
 export type CommandHandler = (
@@ -152,7 +153,52 @@ async function scrapeFeeds(): Promise<void> {
   await markFeedFetched(feed.id);
 
   for (const item of rssFeed.channel.item) {
-    console.log(item.title);
+    const publishedAt = new Date(item.pubDate);
+
+    await createPost(
+      item.title,
+      item.link,
+      item.description,
+      publishedAt,
+      feed.id,
+    );
+  }
+}
+
+export async function handlerBrowse(
+  cmdName: string,
+  ...args: string[]
+): Promise<void> {
+  const config = readConfig();
+
+  if (!config.currentUserName) {
+    throw new Error("No user is currently logged in");
+  }
+
+  const user = await getUserByName(config.currentUserName);
+
+  if (!user) {
+    throw new Error(`User ${config.currentUserName} does not exist`);
+  }
+
+  let limit = 2;
+
+  if (args.length > 0) {
+    const parsedLimit = Number(args[0]);
+
+    if (!Number.isInteger(parsedLimit) || parsedLimit <= 0) {
+      throw new Error("Limit must be a positive integer");
+    }
+
+    limit = parsedLimit;
+  }
+
+  const posts = await getPostsForUser(user.id, limit);
+
+  for (const post of posts) {
+    console.log(`* ${post.title}`);
+    console.log(`  ${post.url}`);
+    console.log();
   }
 }
 

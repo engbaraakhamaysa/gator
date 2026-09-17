@@ -1,4 +1,5 @@
 import {
+  handlerBrowse,
   middlewareLoggedIn,
   handlerFollowing,
   handlerFollow,
@@ -30,6 +31,7 @@ async function main(): Promise<void> {
   registerCommand(registry, "follow", middlewareLoggedIn(handlerFollow));
   registerCommand(registry, "following", middlewareLoggedIn(handlerFollowing));
   registerCommand(registry, "unfollow", middlewareLoggedIn(handlerUnfollow));
+  registerCommand(registry, "browse", handlerBrowse);
 
   // Gets the command-line arguments without the Node.js and npm arguments
   const args = process.argv.slice(2);
